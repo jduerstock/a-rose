@@ -1,0 +1,19 @@
+***			timerlibrary.h - Definitions for use with the timerlibrary.
+*
+*	Copyright © 1988,  Apple Computer, Inc.  All rights reserved.
+				SPACE	4
+
+			If	&TYPE('_timerlibrary_defined_')='UNDEFINED'	Then
+_timerlibrary_defined_		EQU		1			; Define the Symbol
+
+Tmem			Record	0
+NumberMessages	DS.L	1
+time_to_wait	DS.L	1
+head			DS.L	1
+dummy			DS.L	1
+no_mess_count	DS.L	1
+				EndR
+
+		Endif
+		
+*	End of timerlibrary.a.

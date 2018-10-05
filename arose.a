@@ -1,0 +1,316 @@
+***			arose.a - A/ROSE definition file.
+*
+*			Richard W. Mincher.		87/03/15.
+*
+*			Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+			SPACE	4
+
+			If	&TYPE('_mrdos_defined_')='UNDEFINED'	Then
+_mrdos_defined_		EQU		1			; Define the Symbol
+
+**			Constants.
+
+cVersion	EQU		$0101				; Release 1, version 1
+cMaxMsg		EQU		1000				; Maximum number of messages
+cOSStack	EQU		4096				; size of OS Stack
+cMaxTask	EQU		256					; Maximum Number of tasks
+cMaxPri		EQU		32					; Maximum task priority
+cTraceSize	EQU		$1000				; Trace buffer size in bytes
+			SPACE	4
+**			Error messages.
+
+
+eCAPT		EQU		$80000001			; Can't allocate process table
+eCAIT		EQU		$80000002			; Can't allocate idle task
+eNPTR		EQU		$80000003			; No processes to run
+eBTHH		EQU		$80000004			; Bad things have happened
+eCAMS		EQU		$80000005			; Can't allocate message space
+eCAPR		EQU		$80000006			; Can't allocate priority table
+eOVFL		EQU		$80000007			; Stack overflow detected
+eMEMB		EQU		$80000008			; Attempt to free bad memory buffer
+eFMSG		EQU		$80000009			; Attempt to free bad message buffer
+eSMSG		EQU		$8000000A			; Attempt to send bad message buffer
+eTIMQ		EQU		$8000000B			; Task not in timer queue
+eSTTI		EQU		$8000000C			; StartTask cannot be called from interrupt
+eSTPI		EQU		$8000000D			; StopTask cannot be called from interrrupt
+eBVER		EQU		$8000000E			; Download and A/ROSE versions not compatible	
+eBCPY		EQU		$8000000F			; CopyNuBus may no longer be used
+eCNST		EQU		$80000010			; Cannot restart O/S, it was already running
+			SPACE	4
+**			Trap definitions.
+
+trUnused5	EQU		0
+trUnused4	EQU		1
+trFreeMsg	EQU		2
+trGetMsg	EQU		3
+trSpl		EQU		4
+trSend		EQU		5
+trReceive	EQU		6
+trStartTask	EQU		7
+trStopTask	EQU		8
+trResched	EQU		9
+trSpecReqs	EQU		10
+trFreeMem	EQU		11
+trGetMem	EQU		12
+trUnused2	EQU		13
+trUnused1	EQU		14
+trUnused3	EQU		15
+
+**			Trap vector definitions.
+
+taUnused5	EQU		$80
+taUnused4	EQU		$84
+taFreeMsg	EQU		$88
+taGetMsg	EQU		$8C
+taSpl		EQU		$90
+taSend		EQU		$94
+taReceive	EQU		$98
+taStartTask	EQU		$9C
+taStopTask	EQU		$A0
+taResched	EQU		$A4
+taSpecReqs	EQU		$A8
+taFreeMem	EQU		$AC
+taGetMem	EQU		$B0
+taUnused2	EQU		$B4
+taUnused1	EQU		$B8
+taUnused3	EQU		$BC
+			SPACE	4
+**			Kinds of processors
+			Space	4
+type68000	EQU		0				; 68000 processor
+type68020	EQU		1				; 68020 processor
+			SPACE	4
+**			gCommon - MRDOS common data area.
+
+
+gCommon		RECORD	$400
+gFWA		EQU		*				; First word address of the gCommon area
+gRelease	DS.W	1				; 400 - major / minor release
+gProcessor	DS.B	1				; 402 - Type of processor
+gCardRun	DS.B	1				; 403 - Set zero by download, non-zero by O/S
+gBoardID	DS.W	1				; 404 - Board id of card
+gTID		DS.L	1				; 406 - Current Task ID
+gDebugOn	DS.B	1				; 40A - non-zero if debugger running
+gMajorFlag	DS.B	1				; 40B - major processing flag
+gInitA5		DS.L	1				; 40C - Initial A5
+gBuffList	DS.L	1				; 410 - Pointer to memory buffer list
+gSlotAdd	DS.L	1				; 414 - slot address 
+gSlotNum	DS.L	1				; 418 - slot number (<< 24)
+gTimeBase	DS.L	1				; 41C - load time of card (seconds since 1/1/1904)
+gZero1		EQU		*				; 420 - Locations beyond this point to gZero1Lim are cleared
+gMajorTick	DS.L	1				; 420 - major Tick counter
+gCAPAddr	DS.L	3				; 424 - Communications Area Pointers
+gMsgFree	DS.L	1				; 430 - message free list
+gUnique		DS.L	1				; 434 - Unique message ID
+gTickChain	DS.L	1				; 438 - tick Process Chain
+gIdleChain	DS.L	1				; 43C - idle task chain
+gCurrTask	DS.L	1				; 440 - current task pointer
+gIdleLoop	DS.L	1				; 444 - idle loop counter
+gTaskTable	DS.L	1				; 448 - Pointer to task table
+gError		DS.L	1				; 44C - Error number
+gTimeout	DS.L	1				; 450 - timeout queue
+gPriTable	DS.L	1				; 454 - priority table pointer
+gPriList	DS.L	1				; 458 - priority task list
+gUnregTask	DS.L	1				; 45C - routine to unregister task/name relationship
+gMsgFlag	DS.L	1				; 460 - Message buffer flag
+gFwaMess	DS.L	1				; 464 - fwa of message area
+gLwaMess	DS.L	1				; 468 - lwa of message area
+gInitPC		DS.L	1				; 46C - initial start address
+gFwaCode	DS.L	1				; 470 - fwa of initial downloaded code
+gLwaCode	DS.L	1				; 474 - lwa of initial downloaded code
+gMinorTick	DS.L	1				; 478 - minor tick counter
+gDebugTemp	DS.L	1				; 47C - Debugger pointer 
+gDebugCom	DS.L	1				; 480 - Debugger communication area
+gMinPerMaj	DS.W	1				; 484 - minor Ticks per Major Tick
+gTickPerSec	DS.W	1				; 486 - number of major ticks per second
+gMajorDefer	DS.W	1				; 488 - major Ticks Deferred
+gMajorSkip	DS.W	1				; 48A - major Ticks Skipped
+gPageLatch	DS.W	1				; 48C - Page Latch value
+gNameTask	DS.L	1				; 48E - Namer TID
+gIccTask	DS.L	1				; 492 - ICC TID
+gTraceTask	DS.L	1				; 496 - Trace TID
+gTimerTask	DS.L	1				; 49A - Timer TID
+gMsgBucket	DS.W	1				; 49E - message bucket count
+gTRQFlag	DS.B	1				; 4A0 - true if time/task receive queue interlocked
+gBLFlag		DS.B	1				; 4A1 - set true if memory buffer list manipulated
+FreeMsgCount	DS.W	1			; 4A2 - Number of free message buffers
+gTracePtr	DS.L	1				; 4A4 - Address of Trace Buffer Pointers
+gIMMTask	DS.L	1				; 4A8 - IMM TID (does not need to be on this card)
+gIMMHandler	DS.L	1				; 4AC - IMM GW Handler routine
+gZero1Lim	EQU		*-1				; 4B0 - End of first area to clear
+gCPUInfo	DS.W	4				; 4B0 - Slot Manager CPU info for card
+gNetInfo	DS.W	4				; 4B8 - Slot Manager Network info for card
+gCardInit0	DS.L	1				; 4C0 - Card dependent initialization routine
+gCardInit1	DS.L	1				; 4C4 - Card dependent initialization routine
+gCardInit2	DS.L	1				; 4C8 - Card dependent initialization routine
+gMainICCM	DS.L	1				; 4CC - NuBus address of Main Board ICCM data area
+gAddrBias	DS.L	1				; 4D0 - Address bias used for PC and A5
+gZero2		EQU		*				; 4D4 - Locations beyond this point to gZero2Lim are cleared
+gHostInt	DS.L	1				; 4D4 - Host NMRQ interrupt routine
+gClrInt		DS.L	1				; 4D8 - Clear inter-card IOP interrupt routine
+gClrVector	DS.L	1				; 4DC - Clear inter-card IOP auto vector address
+gIntRecord	DS.L	1				; 4E0 - Inter-card interrupt record
+gTimerSR	DS.W	1				; 4E4 - SR to use to disable timer interrupts
+gTimeINT	DS.W	3				; 4E6 - Time Interrupt common processing entry code 
+									;		JMP to this address to enter common processing code
+gSentMQH	DS.L	1				; 4EC - Sent Message Q head
+gSentMQT	DS.L	1				; 4F0 - Sent Message Q tail
+gMemCnt		DS.L	1				; 4F4 - Used is access is local
+gMemMap		DS.L	1				; 4F8 - Local card memory map
+gMemChk		DS.L	1				; 4FC - Used is access is local
+gLocICCM	DS.L	1				; 500 - Local address of ICCM area
+gPWFChain	DS.L	1				; 504 - Power Fail processing chain
+gNameTable	DS.L	1				; 508 - Name table address
+gZero2Lim	EQU		*-1				; 50C - Limit of zero 2 clear area
+gGlobalArea	DS.L	1				; 50C - Global data area address
+gZero3		EQU		*				; 510 - Beginning of third area to clear
+gTimeCorrection	DS.L	1			; 510 - Time correction value
+gICCRtn		DS.L	1				; 514 - ICCM Routine to process inter-card messages
+gZero3Lim	EQU		$53F			; 53F - End of third area to clear
+gNoZero		EQU		$540			; 540 - Beginning of area not cleared
+gCardMask	EQU		$540			; 540 - Mask of slots capable of running A/ROSE
+gROMProgFWA	EQU		$5C0			; 5C0 - Beginning of ROM Programmers area
+gROMProgLWA	EQU		$5FF			; 5FF - End of ROM Programmers area
+gCSize		EQU		$5FF			; End of common block
+			ENDR
+			SPACE	4
+**			sPriority - Scheduling Priority Table.
+
+
+sPriority	RECORD	0
+sNext		DS.L	1				; Next Priority
+sNextTask	DS.L	1				; Points to next unblocked task in this ring
+sLastTask	DS.L	1				; Points to last unblocked task in this ring
+sCount		DS.W	1				; Number of tasks in this priority ring
+sPSize		EQU		*				; End of priority block
+			ENDR
+			SPACE	4
+**			bMemory - Buffer Memory Structure.
+
+
+bMemory		RECORD	0
+bNext		DS.L	1				; Next block pointer
+bSize		DS.L	1				; upper byte usage count
+									; next 3 bytes Size of block
+bMSize		EQU		*				; End of memory block
+			ENDR
+
+			SPACE	4
+**			dDebugArea - MRDOS Debug data area.
+
+
+dDebugArea		RECORD	$600
+D_Registers		DS.L	8
+A_Registers		DS.L	8
+StatusRegister	DS.W	1
+ProgramCounter	DS.L	1
+UserStackPtr	DS.L	1
+BreakFlag		DS.B	1		; ($FF when execution broken, $00 when execution commenced)
+CommandCode		DS.B	1		; Set to appropriate DebugCode
+Reserved1		DS.L	1
+TrapNumber		DS.L	1
+MemoryAddress	DS.L	1
+MemoryValue		DS.L	1		; Memory location is right justified if word or byte
+MemorySize		DS.B	1		; value (0 = byte, 1 = word, 2 = long)
+CommandStatus	DS.B	1		; 0 If command accepted, $FF if command rejected
+Initialcrashflg	DS.B	1		; 0 if hwerr initially entered, 1 if hwbuserr initially entered
+DebugAreaEnd	EQU		$6FF	; Reserve area ($600 - $6FF) for any debugging needs
+			ENDR
+			
+DebugCodeExecute	EQU	0
+DebugCodeReadMem	EQU	1
+DebugCodeWriteMem	EQU	2
+
+UserArea	Record	$700		; Beginning of user area
+UserFwa		DS.B	1			; This area is used by user applications
+								; User applications must manage this area themselves
+UserAreaEnd	EQU		$7FF		; End of user area
+			EndR
+**		SetJmpT - Set A/ROSE Jump Table Entry.
+
+		Macro
+&L		SetJumpEntry	&index, &Address
+		Print	Push, NoGen
+&L		PEA		&Address			; Push address
+		PEA		&index				; Index of entry to change
+		PEA		2
+		Move.L	A7, A0
+		Trap	#trSpecReqs
+		Add.W	#3*4, A7
+		Print	Pop
+		EndM
+
+*		Jump Table indices to be used with SetJumpEntry.		
+
+
+ePostRTE			EQU		0	
+eFreeMem			EQU		1		
+eFreeMsg			EQU		2		
+eGetMem				EQU		3		
+eGetMsg				EQU		4		
+eReceive			EQU		5		
+eReschedule			EQU		6	
+eSend				EQU		7		
+eSpl				EQU		8		
+eStartTask			EQU		9	
+eStopTask			EQU		10	
+eBlockMove			EQU		11
+eBadCopyNuBus		EQU		12
+eGetBSize			EQU		13
+eGetCard			EQU		14
+eGetETick			EQU		15
+eGetgCommon			EQU		16
+eGetHeap			EQU		17	
+eGetStParms			EQU		18
+eGetTCB				EQU		19
+eGetTickPS			EQU		20
+eGetTID				EQU		21
+eGetICCTID			EQU		22
+eGetNameTID			EQU		23
+eGetTimerTID		EQU		24
+eGetTraceTID		EQU		25
+eGetUCount			EQU		26
+eICCReg				EQU		27
+eIncUCount			EQU		28
+eNameReg			EQU		29
+eTimerReg			EQU		30
+eTraceReg			EQU		31
+eLookup_Task		EQU		32
+eRegister_Task		EQU		33	
+eMapNuBus			EQU		34
+eToNuBus			EQU		35
+eIsLocal			EQU		36
+eSwapTID			EQU		37
+eIsTID				EQU		38
+eTLInitTimer		EQU		39
+eTLStartTimer		EQU		40
+eTLCancelTimer		EQU		41
+eTLActiveTimer		EQU		42
+eTLReceive			EQU		43
+eAROSESECS2DATE		EQU		44
+eAROSEDATE2SECS		EQU		45
+eAROSEGETDATETIME	EQU		46
+eIMMReg				EQU		47
+eGetIMMTID			EQU		48
+eNetCopy			EQU		49
+eNet_Register_Task	EQU		50
+eCountFreeMem		EQU		51
+eCountMaxMem		EQU		52
+eSuperCall			EQU		53
+eGetTIDIMM			EQU		54
+eNetLookup			EQU		55
+eOpenSection		EQU		56
+eCloseSection		EQU		57
+eResetPageLatch		EQU		58
+eFreeMsgCount		EQU		59
+eLockRealArea		EQU		60
+eUnlockRealArea		EQU		61
+eIMMHReg			EQU		62
+eUnregister_Name	Equ		63
+eSetupBusErrorHandler	Equ	64
+eSetupPowerFail		Equ		65
+eLastEntry			EQU		65			; Set to last entry index in table
+
+			Endif
+			
+*	End of arose.a.

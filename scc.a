@@ -1,0 +1,45 @@
+***			scc.a - SCC interupt handler table.							
+*
+*			Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+			SPACE	4
+
+			If	&TYPE('_scc_defined_')='UNDEFINED'	Then
+_mscc_defined_		EQU		1			; Define the Symbol
+
+*			scc processors table.
+
+
+sccint		RECORD	0
+chbtbep		DS.L	1				; ch b transmit buffer empty procedure
+chbescp		DS.L	1				; ch b external/status change procedure		
+chbrcap		DS.L	1				; ch b receive character available procedure	
+chbrscp		DS.L	1				; ch b receive special condition procedure	
+chatbep		DS.L	1				; ch a transmit buffer empty procedure		
+chaescp		DS.L	1				; ch a external/status change procedure		
+charcap		DS.L	1				; ch a receive character available procedure	
+charscp		DS.L	1				; ch a receive special condition procedure	
+			
+*			COUNTERS.	
+
+chbtbec		DS.L	1				
+chbescc		DS.L	1				
+chbrcac		DS.L	1				
+chbrscc		DS.L	1				
+chatbec		DS.L	1				
+chaescc		DS.L	1				
+charcac		DS.L	1				
+charscc		DS.L	1				
+
+*			ARGUMENTS.
+
+chbtbea		DS.L	1				
+chbesca		DS.L	1				
+chbrcaa		DS.L	1				
+chbrsca		DS.L	1				
+chatbea		DS.L	1				
+chaesca		DS.L	1				
+charcaa		DS.L	1				
+charsca		DS.L	1				
+			ENDR
+			
+			Endif

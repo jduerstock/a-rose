@@ -1,0 +1,256 @@
+**			Common stuff.
+*
+*			Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+			SPACE	4
+
+			If	&TYPE('NULL')='UNDEFINED'	Then
+NULL		EQU		0
+			Endif
+
+			If	&TYPE('_managers_defined_')='UNDEFINED'	Then
+_managers_defined_		EQU		1			; Define the Symbol
+
+			SPACE	4
+*			Common error codes - os defined (0<<8 - 19<<8)				
+
+OS_NO_ERRORS			EQU		0<<8	; no errors - all is ok		
+OS_UNKNOWN_MESSAGE		EQU		1<<8	; unknown message				
+			SPACE	4
+*			Common message codes - os defined (2-99).
+
+MC_STOP					EQU		2		; clean up and stop task		
+			SPACE	4
+**			Name Manager related stuff.
+
+
+NM_Type_Size_Max		EQU		32		; max chars in type name			
+NM_Obj_Size_Max			EQU		32		; max chars in object name		
+Machine_Visible			EQU		0		; Register_task Machine visible flag	
+Locally_Visible			EQU		1		; Register_Task locally visible flag
+World_Visible			EQU		-1		; Register_task World visible flag	
+NM_WILDCARD				EQU		'='		; wildcard character, matches all	
+NM_Max_Slot				EQU		16		; maximum number of slots				
+
+	
+**			Name Manager Message Codes - (MUST BE EVEN NUMBER) (100 - 121)
+	
+
+NM_REG_TASK				EQU		100				; register task 			
+NM_LOOKUP_PID			EQU		102				; lookup process id 		
+NM_LOOKUP_TID			EQU		NM_LOOKUP_PID	; lookup task id 			
+NM_LOOKUP_NAME			EQU		104				; lookup name 				
+NM_UNREG_TASK			EQU		106				; unregister task 		
+NM_N_SLOT_REQ			EQU		108				; notify task on slot down				
+NM_N_TASK_REQ			EQU		110				; notify task on task stopped			
+NM_N_SLOT_CAN			EQU		112				; cancel task notify on slot down		
+NM_N_TASK_CAN			EQU		114				; cancel task notify on task stopped	
+NM_UNREG_NAME			EQU		116				; unregister name
+NM_NET_REG_TASK			EQU		118				; Network register task
+NM_TRUNCATE_TABLES		EQU		120				; Internal NM Msg - truncate tables
+
+**			Error Codes.
+
+
+NM_NO_ERRORS			EQU		OS_NO_ERRORS		; no errors - all is ok		
+NM_UNKNOWN_MESSAGE		EQU		OS_UNKNOWN_MESSAGE	; unknown message				
+NM_LTID_PB_TOO_SMALL	EQU		20<<8				; lookup tid parm block too small
+NM_RT_PB_TOO_SMALL		EQU		21<<8				; register task parm block to smal	
+NM_LN_PB_TOO_SMALL		EQU		22<<8				; lookup name parm block too small
+NM_RA_LTID_TOO_SMALL	EQU		23<<8				; lookup tid return area too small	
+
+NM_RA_LNM_TOO_SMALL		EQU		NM_RA_LTID_TOO_SMALL
+
+NM_INVALID_NAME_SIZE	EQU		24<<8				; invalid name size register task	 
+NM_DUPLICATE_NAME		EQU		25<<8				; name already registered		
+NM_ERR_NO_MEMORY		EQU		26<<8				; no memory available for request	
+NM_RT_REMOTE_REG		EQU		27<<8				; remote registration not allowed
+NM_SLOT_NOT_UP			EQU		28<<8				; notify-slot not up				
+NM_TASK_NOT_EXIST		EQU		29<<8				; notify-local task does not exist
+NM_NAME_NOT_REG			EQU		30<<8				; notify-remote task does not exist
+NM_BAD_SLOT_NUMBER		EQU		31<<8				; notify-bad slot number specified	
+NM_BAD_TASK_NUMBER		EQU		32<<8				; notify-bad task number-not local	
+NM_NO_ENTRY_FOUND		EQU		33<<8				; notify-no table entry found	
+NM_NAME_NOT_FOUND		EQU		34<<8				; unregister name-name not found
+NM_NOMEMAVAIL			EQU		35<<8				; No memory available to process request
+			SPACE	4
+**			structure definitions.
+
+
+obj_rec				RECORD	0					; object name record
+												; DO NOT CHANGE THE ORDER
+o_len				DS.B	1					; length of object name
+o_name				DS.B	NM_Obj_Size_Max		; maximum chars in object name
+					ENDR
+			
+typ_rec				RECORD	0					; type name record
+												; DO NOT CHANGE THE ORDER
+t_len				DS.B	1					; length of object name
+t_name				DS.B	NM_Type_Size_Max	; maximum chars in object name
+					ENDR
+					
+pb_register_task	RECORD	0					; register name param block
+rt_on				DS.B	1+NM_Obj_Size_Max	; object name
+rt_tn				DS.B	1+NM_Type_Size_Max	; type name
+rt_local_vis		DS.B	1					; locally visible only flag
+					ENDR
+					
+pb_unregister_name	RECORD	0					; unregister name param block
+ut_on				DS.B	1+NM_Obj_Size_Max	; object name
+ut_tn				DS.B	1+NM_Type_Size_Max	; type name
+					ENDR
+
+ra_ltid				RECORD	0					; return area for lookup tid
+ra_on				DS.B	1+NM_Obj_Size_Max	; object name
+ra_tn				DS.B	1+NM_Type_Size_Max	; type name
+ra_tid				DS.W	1					; process id
+ra_ltid_size		EQU		*					; size of ra_ltid record
+					ENDR
+
+pb_lookup_tid		RECORD	0					; lookup process id parameter block
+ltid_on				DS.B	1+NM_Obj_Size_Max	; object name
+ltid_tn				DS.B	1+NM_Type_Size_Max	; type name
+ltid_index			DS.W	1					; index
+ltid_RAsize			DS.W	1					; size of return area
+ltid_ra				DS.B	1					; return area	(OUTPUT)
+					ENDR
+					
+ra_lnm				RECORD	0					; return area for lookup name
+ra_on				DS.B	1+NM_Obj_Size_Max	; object name
+ra_tn				DS.B	1+NM_Type_Size_Max	; type name
+ra_lnm_size			EQU		*					; size of return area
+					ENDR
+					
+pb_lookup_name		RECORD	0					
+lnm_tid				DS.W	1					; process id
+lnm_index			DS.W	1					; index		(INPUT/OUTPUT)
+lnm_RAsize			DS.W	1					; size of return area
+lnm_ra				DS.B	1					; return area	(OUTPUT)
+					ENDR
+				SPACE	4
+**				Time manager related stuff.
+
+
+*				time manager message codes		(120 - 139)			
+
+TIMER_1_SHOT_REQUEST	EQU		120		; one shot timer request		
+TIMER_1_SHOT_REPLY		EQU		121		; one shot timer reply			
+
+TIMER_PERIODIC_REQUEST	EQU		122		; periodic time request	
+TIMER_PERIODIC_REPLY	EQU		123		; periodic time reply			
+
+TIMER_QUERY_REQUEST		EQU		124		; timer query request			
+TIMER_QUERY_REPLY		EQU		125		; timer query reply			
+
+TIMER_CANCEL_REQUEST	EQU		126		; timer cancel request			
+TIMER_CANCEL_REPLY		EQU		127		; timer cancel reply			
+
+*				define error codes.									
+
+TIMER_NO_ERRORS			EQU		OS_NO_ERRORS		; no errors					
+TIMER_UNKNOWN_MESSAGE	EQU		OS_UNKNOWN_MESSAGE	; unknown message			
+TIMER_CANCELLED			EQU		40<<8				; timer already cancelled			
+
+				SPACE	4
+**				Print manager related stuff  (140 - 149).
+
+
+PRINT_ME		EQU		140				; print the buffer						
+PRINT_READY		EQU		142				; internal message do not use, PLEASE!!	
+PRINT_START		EQU		144				; Continue printing of messages
+PRINT_STOP		EQU		146				; Stop printing messages - do not go away
+
+				SPACE	4
+**				ICCM message codes (150 - 159).
+
+
+IC_MAXCARDS		EQU		16				; Maximum number of NuBus cards allowed	
+
+ICC_GETCARDS	EQU		150				; Get list of active cards and their name	
+										; manager addresses.  mDataPtr points to	
+										; the response buffer of the form below.	
+										; mDataSize = sizeof (struct ra_GetCards)	
+ICC_GETIMMS		EQU		152				; Get list of active cards and their IMM	
+										; manager addresses.  mDataPtr points to	
+										; the response buffer of the form below.	
+										; mDataSize = sizeof (struct ra_GetIMMs)
+ICC_DETACH		Equ		154				; Detach card from others
+ICC_ATTACH		Equ		156				; Attach card with others
+ICC_INTCARD		EQU		1150			; Enable/Disable intercard interrupts
+
+*				ICCM error codes.
+
+IC_BAD_REPLY_AREA	EQU		50<<8
+
+*				ICCM structure definitions.
+
+ra_GetCards		RECORD	0				; Format of reply to ICC_GETCARDS
+tid				DS.L	IC_MAXCARDS		; < 0 means corr. card not present,
+										; = 0 means card present - no name manager,
+										; > 0 means address of name manager on card
+										;	  may be used in mTo field of a message
+				ENDR
+ra_GetIMMs		RECORD	0				; Format of reply to ICC_GETIMMS
+tid				DS.L	IC_MAXCARDS		; < 0 means corr. card not present,
+										; = 0 means card present - no IMM manager,
+										; > 0 means address of IMM manager on card
+										;	  may be used in mTo field of a message
+				ENDR
+				SPACE	4
+**				Remote System message codes (160 - 199).
+ 
+
+RSM_FreeMem		EQU		160			; Free Memory System Call						
+RSM_GetMem		EQU		164			; GetMem System Call							
+RSM_StartTask	EQU		168			; StartTask System Call						
+RSM_StopTask	EQU		170			; StopTask System Call							
+RSM_MemoryInfo	EQU		180			; CountFreeMem/CountMaxMem Calls
+
+RSM_FreeMsg		EQU		162			; Free Message System Call	(NOT IMPLEMENTED)	
+RSM_GetMsg		EQU		166			; GetMsg System Call  (NOT IMPLEMENTED)		
+RSM_Receive		EQU		172			; Receive System Call (NOT IMPLEMENTED)		
+RSM_Reschedule	EQU		174			; Reschedule System Call (NOT IMPLEMENTED)		
+RSM_Send		EQU		176			; Send System Call (NOT IMPLEMENTED)			
+RSM_SPL			EQU		178			; SPL System Call (NOT IMPLEMENTED)			
+
+**				Remote System Manager Error Codes
+ 
+RSE_NO_ERRORS		EQU		OS_NO_ERRORS
+RSE_UNKNOWN_MESSAGE	EQU		OS_UNKNOWN_MESSAGE
+RSE_NOT_MEM			EQU		60 << 8		; error - not a memory region				
+RSE_NOT_MSG			EQU		61 << 8		; error - not a message region				
+RSE_PB_BAD_SIZE		EQU		62 << 8		; error - parm block not correct size		
+RSE_NO_PB			EQU		63 << 8		; error - no parameter block				
+RSE_CODESEGMENT		EQU		64 << 8		; error - no code segment 					
+RSE_DATASEGMENT		EQU		65 << 8		; error - no data segment					
+RSE_STARTPARMSEG	EQU		66 << 8		; error - no start parameter segment		
+RSE_PC_BAD			EQU		67 << 8		; error - PC out of range					
+RSE_No_TCB			EQU		68 << 8		; error - could not allocate TCB			
+
+
+				SPACE	4
+**				Trace Manager message codes (200 - 219).
+
+
+TM_TRACE		EQU		200			; Trace Message 
+TM_TRACE_ON		EQU		202			; Turn Tracing On 
+TM_TRACE_OFF	EQU		204			; Turn Tracing Off
+
+**				Trace Manager Error Codes
+
+TME_UNKNOWN_MESSAGE	EQU		OS_UNKNOWN_MESSAGE	
+
+**				Inter-Machine Manager message codes (220 - 239)
+*cbo - Took out most of IMM definitions. The ones that are left are needed
+* 		for inter-slot NetCopy's that need help from the motherboard. This
+*		might be added to if IMM (ROSA) ever becomes a real manager.
+
+IMM_NetCopy		EQU		220			; Perform NetCopy Operation
+
+**				Inter-Machine Manager Error Codes
+
+IMM_REMOTETIDBAD	EQU		86 << 8		; Remote TID is bad, i.e., it is not mapped.
+IMM_NoMsgAvail		EQU		87 << 8		; No message buffer available
+
+				Endif
+
+**	End of managers.a 

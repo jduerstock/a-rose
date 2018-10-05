@@ -1,0 +1,41 @@
+***			siop.a - SIOP definition file..
+*
+*			Richard W. Mincher.		87/02/05.
+*
+*			Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+
+*	Steve K. Wang	Aug. 27th, 1987
+*	Add ifdef statement to support both AST & Apple MCP cards
+*
+*  Modified by Anumele D. Raja on June 29, 1988 to remove card dependent information
+*
+			SPACE	4
+			
+			If	&TYPE('_siop_defined_')='UNDEFINED'	Then
+_siop_defined_		EQU		1			; Define the Symbol
+
+			Include	'cddefs.a'
+
+**			Common constants
+RAM_INCR		EQU	$080000		; RAM length increment
+DEBUGGER		EQU	$0f1000		; Debugger Starting Address
+
+**			Soft Addresses
+INIT_SP			EQU	$000000		; Initial Stack Pointer
+INIT_PC			EQU	$000004		; Initial Program Counter
+INIT_VERSION	EQU	$000400		; Version level of Download
+INIT_PROCESSOR	EQU	$000402		; Processor type
+INIT_BOARDID	EQU	$000404		; Board id of card
+INIT_A5			EQU	$00040c		; Initial A5 Address
+INIT_FREE		EQU	$000410		; Initial FREE Address
+INIT_SLOTAD		EQU	$000414		; Initial slot NuBus address	
+INIT_SLOTNO		EQU	$000418		; Initial slot number (0-F)	
+INIT_TIME		EQU	$00041c		; Initial time (1/10 seconds)
+INIT_CPUINFO	EQU	$0004B0		; Slot Manager CPU info for card
+INIT_NETINFO	EQU	$0004B8		; Slot Manager Network info for card
+INIT_CARDRTN0	EQU	$0004C0		; Card dependent initialization routine
+INIT_CARDRTN1	EQU	$0004C4		; Card dependent initialization routine
+INIT_CARDRTN2	EQU	$0004C8		; Card dependent initialization routine
+INIT_DBG		EQU	$000600		; Debugger Data Area
+INIT_LOAD		EQU	$000800		; Initial Load Address
+			Endif

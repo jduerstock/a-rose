@@ -1,0 +1,133 @@
+
+			If	&TYPE('_cddefs_defined_')='UNDEFINED'	Then
+_cddefs_defined_		EQU		1			; Define the Symbol
+			SPACE	4
+			SPACE	4
+**		Base Addresses
+
+
+RAM_BASE		EQU	$000000		; RAM base address	
+AST_VIA_BASE	EQU	$0C0000		; VIA base address
+AST_NAP_BASE	EQU	$0D0000		; NuBus Page Address Latch
+AST_ROM_BASE	EQU	$0F0000		; ROM base address
+AST_NUBUS		EQU	$800000		; NuBus access - normal
+RMW_BASE		EQU	$C00000		; NuBus access - RMW
+
+			SPACE	4
+**		VIA Addresses
+
+
+VIA_IORB		EQU	$000000		; I/O Register B
+VIA_IORA		EQU	$000002		; I/O Register A
+VIA_DDRB		EQU	$000004		; Data Direction Register B
+VIA_DDRA		EQU	$000006		; Data Direction Register A
+VIA_T1CL		EQU	$000008		; T1 Low-Order Latch / Counter
+VIA_T1CH		EQU	$00000A		; T1 High Order Counter
+VIA_T1LL		EQU	$00000C		; T1 Low-Order Latches
+VIA_T1LH		EQU	$00000E		; T1 High-Order Latches
+VIA_T2CL		EQU	$000010		; T2 Low-Order Latch / Counter
+VIA_T2CH		EQU	$000012		; T2 High-Order Counter
+VIA_SR			EQU	$000014		; Shift Register
+VIA_ACR			EQU	$000016		; Auxiliary Control Register
+VIA_PCR			EQU	$000018		; Peripheral Control Register
+VIA_IFR			EQU	$00001A		; Interrupt Flag Register
+VIA_IER			EQU	$00001C		; Interrupt Enable Register
+VIA_NHIORA		EQU	$00001E		; I/O Register A w/o Handshake
+			SPACE	4
+**		VIA Bit definitions
+
+
+VBIT_DMA23		EQU	7			; PA7 - address bit 23 for DMA
+VBIT_DMA22		EQU	6			; PA6 - address bit 22 for DMA
+VBIT_TM0		EQU	5			; PA5 - TM0* from master trans.
+VBIT_TM1		EQU	4			; PA4 - TM1* from master trans.
+VBIT_JUMPER1	EQU	3			; PA3 - Configuration Jumper #1
+VBIT_SHADOW		EQU	2			; PA2 - ROM Shadow bit
+VBIT_RESET		EQU	1			; PA1 - 68000 Reset line
+VBIT_JUMPER2	EQU	0			; PA0 - Configuration Jumper #2
+
+VBIT_SCC1DSRA	EQU	7			; PA7 - SCC #1, DSR Channel A
+VBIT_SCC1RIA	EQU	6			; PA6 - SCC #1, RI Channel A
+VBIT_SCC1DSRB	EQU	5			; PA5 - SCC #1, DSR Channel B
+VBIT_SCC1RIB	EQU	4			; PA4 - SCC #1, RI Channel B
+VBIT_SCC2DSRA	EQU	3			; PA3 - SCC #2, DSR Channel A
+VBIT_SCC2RIA	EQU	2			; PA2 - SCC #2, RI Channel A
+VBIT_SCC2DSRB	EQU	1			; PA1 - SCC #2, DSR Channel B
+VBIT_SCC2RIB	EQU	0			; PA0 - SCC #2, RI Channel B
+
+VBIT_LEVEL1		EQU	0			; CA2 - Level 1 interupt to 68000
+VBIT_NMRQ		EQU	1			; CB2 - NMRQ* to NuBus
+			SPACE	4
+**			Misc. Constants
+
+CHKSUM_A1		EQU	$0f081e		; First Checksum Byte Address
+CHKSUM_A2		EQU	$0f081f		; Second Checksum Byte Address
+CHKSUM_A3		EQU $0f0566		; Third Checksum Byte Address	
+CHKSUM_V1		EQU	$87ad		; First Checksum Byte Value
+CHKSUM_V2		EQU	$9107		; Second Checksum Byte Value
+CHKSUM_V3		EQU $1d41		; Third Checksum Byte Value
+			SPACE	4
+**		Base Addresses
+
+MCP_ROMBASE	EQU		$FF0000			;	ROM base address
+MCP_CTLBASE	EQU		$C00000			;	Control register base address
+MCP_NUBUS	EQU		$A00000			;	Nubus address
+MCP_CTRESET	EQU		$F00000			;	Reset 68000	
+
+			SPACE	4
+**			Control register offset locations.
+
+MCP_STIOPRQ	EQU		$A				;	Set interrupt IOP request
+MCP_CRIOPRQ	EQU		$8				;	Clear interrupt IOP request	
+MCP_STHSTRQ	EQU		$6				;	Set interrupt host request
+MCP_CRHSTRQ	EQU		$4				;	Clear interrupt host request
+MCP_CLRTIMR	EQU		$2				;	Clear timer interrupt
+MCP_CLRREST	EQU		$0				;	clear 68000 reset
+
+			SPACE	4
+**			Misc. Constants
+
+MCP_CHKSUNA1		EQU	MCP_ROMBASE+$ffea	; location of MCP ROM magic number
+MCP_CHKSUMV1		EQU	$c3d2				; MCP ROM magic value
+
+			SPACE	4
+**		Base Addresses
+
+ASICMCP_ROMBASE		EQU		$FF0000			;	ROM base address
+ASICMCP_CTLBAS1		EQU		$C00000			;	Control register base address
+ASICMCP_CTLBAS2		EQU		$CA0000			;	2nd Control register base address
+ASICMCP_NUBUS		EQU		$A00000			;	Nubus address
+ASICMCP_CTRESET		EQU		$F00000			;	Reset 68000	
+
+			SPACE	4
+**			Control register offset locations.
+
+ASICMCP_STIOPRQ		EQU		$A		;	Base 2 - Set interrupt IOP request
+ASICMCP_CRIOPRQ		EQU		$8		;	Base 2 - Clear interrupt IOP request	
+ASICMCP_STHSTRQ		EQU		$6		;	Base 1 - Set interrupt host request
+ASICMCP_CRHSTRQ		EQU		$4		;	Base 1 - Clear interrupt host request
+ASICMCP_CLRTIMR		EQU		$2		;	Base 1 - Clear timer interrupt
+ASICMCP_CLRREST		EQU		$0		;	Base 1 - clear 68000 reset
+ASICMCP_LATCHLOW	EQU		$3		;	Base 1 - R/W Byte - CPU Addr latch D4-7->AD20-23
+ASICMCP_LATCHHIGH	EQU		$1		;	Base 1 - R/W Byte - CPU Address latch D0-7->AD24-31
+ASICMCP_IOLATCHLOW	EQU		$7		;	Base 1 - R/W Byte - I/O Addr latch D4-7->AD20-23
+ASICMCP_IOLATCHHIGH	EQU		$5		;	Base 1 - R/W Byte - I/O Addr latch D0-7->AD24-31
+ASICMCP_TIMERLOW	EQU		$9		;	Base 2 - R/W Byte - Programmable timer low byte
+ASICMCP_TIMERHIGH	EQU		$B		;	Base 2 - R/W Byte - Programmable timer high byte
+ASICMCP_READLTIMER	EQU		$6		;	Base 1 - Read word - Current low byte timer value in low byte
+ASICMCP_READHTIMER	EQU		$4		;	Base 1 - Read word - Current high byte timer value in low byte
+
+			SPACE	4
+**			Misc. Constants
+
+ASICMCP_CHKSUNA1		EQU	MCP_ROMBASE+$ffea	; location of MCP ROM magic number
+ASICMCP_CHKSUMV1		EQU	$c3d2				; MCP ROM magic value
+
+			Space	4
+**			Global Misc. Constants
+TICKS_PS				EQU	19					; 19 ticks per second
+TICK_MIN_MAJ			EQU	8					; 8 minor ticks per major tick
+	
+			SPACE	4
+	
+	EndIf

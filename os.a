@@ -1,0 +1,592 @@
+***			os.a - Definitions for use with user application files.
+*
+*	Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+				SPACE	4
+
+			If	&TYPE('_os_defined_')='UNDEFINED'	Then
+_os_defined_		EQU		1			; Define the Symbol
+
+			If	&TYPE('&Card')='UNDEFINED'	Then
+			GBLC	&Card
+&Card		SetC		'NuMac'			; Define the Symbol
+			EndIf
+			
+**				Constants.
+
+
+OS_SLICE_MODE	EQU		0				; scheduling is done using time slicing
+OS_BLOCK_MODE	EQU		1				; scheduling is done when task blocks		
+OS_SLICE_IMMED	EQU		2				; scheduling is done with slice mode - no CPU switch
+OS_BLOCK_IMMED	EQU		3				; scheduling is done when task blocks - no CPU switch
+OS_RTN_MODE		EQU		4				; current scheduling mode is returned 
+OS_RTN_IMMED	EQU		6				; current scheduling mode is returned - no CPU switch
+
+OS_MATCH_ALL	EQU		0				; on receive match anything				
+OS_MATCH_NONE	EQU		-1				; message code that does not exist			
+
+OS_NO_TIMEOUT	EQU		0				; receive waits forever for message	
+
+			SPACE	4
+
+STE_NO_ERRORS 	EQU		0				; StartTask - No error 
+STE_NO_TCB		EQU		$8001			; StartTask - No TCB allocated
+erLockFailed	EQU		$8002			; LockRealArea - failed
+erUnlockFailed	EQU		$8003			; UnlockRealArea - failed 
+
+			Space	4
+			
+**			Apple IPC driver error codes
+
+NoQueueErr	Equ	-64				; Error code for no more queues
+QueueBusy	Equ	-65				; If receive already outstanding on queue
+
+			SPACE	4
+**			mMessage - Message queue entry.
+
+
+mMessage	RECORD	0
+mNext		DS.L	1				; 00 - Next Message Q Entry
+mId			DS.L	1				; 04 - Message ID
+mCode		DS.W	1				; 08 - Message Code
+mStatus		DS.W	1				; 0A - Message System Status 
+									; ^ Upper byte system/lower byte user status 
+mPriority	DS.W	1				; 0C - Message Priority
+mFrom		DS.L	1				; 0E - Message Source
+mTo			DS.L	1				; 12 - Message Destination
+mSData		DS.L	3				; 16 - Sender Immediate Message Data
+									; mSdata not modified by receiver
+mOData		DS.L	3				; 22 - Other Immediate Message Data
+mDataSize	DS.L	1				; 2E - Message Data Length (in bytes)
+mDataPtr	DS.L	1				; 32 - Message Data Pointer
+mMSize		EQU		*				; 36 - End of message block
+			ENDR
+			SPACE	4
+**				Parameter Block Definition for StartTask
+  
+stRegisters	RECORD	0
+stDReg		DS.L	8				; D0 - D7 
+stAReg		DS.L	8				; A0 - A7   Note: A7 not used
+stPC		DS.L	1				; Program Counter
+stRegSize	EQU		*				; size of struct (sRegisters)
+			ENDR
+			
+stParm		RECORD	0
+stCodeSeg	DS.L	1				; memory region on card for code or null
+stDataSeg	DS.L	1				; memory region on card for global data	or null
+stParmSeg	DS.L	1				; memory region on card for start parameters or null
+stRegs		DS		stRegisters		; initial register set for starting task
+stStack		DS.L	1				; initial stack size (in bytes)
+stHeap		DS.L	1				; initial heap size (in bytes)
+stEReturn	DS.W	1				; return code in case of error - task id = 0
+stPriority	DS.B	1				; priority of task
+			Align	4				; padding for alignment with C
+stParentTID	DS.L	1				; TID of Parent
+stSize		EQU		*				; size of struct (stParm)
+			ENDR
+
+			SPACE	4
+**			pTaskSave - Task Control Block (TCB).
+
+
+pTaskSave	RECORD	0
+pNextTask	DS.L	1				; 00 - Next Task (Priority Queue)
+pNextTime	DS.L	1				; 04 - Next Task (Timeout Queue)
+pStackBuf	DS.L	1				; 08 - Stack Buffer Pointer
+pHeapBuf	DS.L	1				; 0C - Heap Buffer Pointer
+pPcSave		DS.L	1				; 10 - Program Counter
+pSpSave		DS.L	1				; 14 - Stack Pointer
+pCodeSeg	DS.L	1				; 18 - code segment or null
+pDataSeg	DS.L	1				; 1C - data segment (Globals) or null
+pStartParm	DS.L	1				; 20 - start parameter segment or null
+pParentTID	DS.L	1				; 24 - TID of Parent on Network/Host
+pSrSave		DS.W	1				; 28 - Status Register
+pPageLatch	DS.W	1				; 2A - Page Latch
+pPriority	DS.B	1				; 2C - Priority
+pRcvFlag	DS.B	1				; 2D - Non-zero if Receive, Negative if match all	
+pTID		DS.W	1				; 2E - Process ID
+pQHead		DS.L	1				; 30 - Message Q Head
+pQTail		DS.L	1				; 34 - Message Q Tail
+pQTimeout	DS.L	1				; 38 - Mesage Q Blocking Timeout
+pQMsgID		DS.L	1				; 3C - Message Q	Message ID Block
+pQMsgFrom	DS.L	1				; 40 - Message Q From Block
+pQMsgCode	DS.W	1				; 44 - Mesage Q Code Block
+pTMQFlag	DS.B 	1				; 46 - Non-zero if Receive & in timeout queue
+pBlockMode	DS.B	1				; 47 - Non-zero if Block mode
+pStartAddr	DS.L	1				; 48 - Start address of the dynamic task
+pGlobalArea	DS.L	1				; 4C - Global area start address
+pPriListPtr	DS.L	1				; 50 - Pointer to gPriList entry this task is part of
+pTsize		EQU		*				; End of TCB Block
+			ENDR
+		Space	4
+
+*	Address Map List - contains virtual to real address conversions.
+*	Warning - Each AddrMap must be contiguous in real memory.
+
+addressareas	Record	0		; Individual real/address length area 
+address			DS.L	1		; Physical address of memory area
+length			DS.L	1		; Length of memory area
+size			EQU		*
+				EndR
+				
+AddrMap			Record	0		
+vNext			DS.L	1		; Virtual address of next address map list or zero
+rNext			DS.L	1		; Real address of next address map list or zero
+tid				DS.L	1		; TID associated with this virtual address
+flags			DS.W	1		; Reserved for now - must be zero
+usage			DS.W	1		; Usage count - non-zero means entry in use
+MapSize			DS.L	1		; Length of AddrMap entry
+vAddress		DS.L	1		; Virtual address
+vlength			DS.L	1		; Length associated with virtual address
+ssize			EQU		*		; Size of static portion of AddrMap
+areas			DS		addressareas	; Physical address/length pairs
+				EndR
+
+		SPACE	4
+		Eject	20
+		
+
+**	Macro definitions.
+
+
+**	_OptPush - Optimized push.
+
+		Macro
+&L		_OptPush	&P
+		Print	Push, NoGen
+		LclC	&SS
+		If		&SubStr(&Trim(&P), 1, 1)='#' Then
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		Clr.L	-(A7)
+		Else
+&L		PEA		&SS
+		EndIf
+		ElseIf	&SubStr(&Type(&P), 1, 4)='CODE' Then
+&L		PEA		&P
+		Else
+&L		Move.L	&P, -(A7)
+		EndIf
+		Print	Pop
+		EndM
+*
+
+**	FreeMem - Free memory - A/ROSE only.
+
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		FreeMem	&P
+		Print	Push, NoGen
+&L		MoveA.L	&P, A0
+		Trap	#trFreeMem
+		Print	Pop
+		EndM
+		
+		EndIf
+
+
+**	GetMem - Get memory - A/ROSE only.
+
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		GetMem	&P
+		Print	Push, NoGen
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		MoveA.L	&P, A0
+		Trap	#trGetMem
+		ElseIf	&SubStr(&Trim(&P), 1, 1)='#' Then
+		LclC	&SS
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		SubA.L	A0, A0
+		Else
+&L		LEA		&SS, A0
+		EndIf
+		Trap	#trGetMem
+		Else
+&L		MoveA.L	&P, A0
+		Trap	#trGetMem
+		EndIf
+		Print	Pop
+		EndM
+		
+		EndIf
+
+
+**	FreeMsg - Free message buffer.
+
+		Macro
+&L		FreeMsg	&P
+		GBLC	&Card
+		Print	Push, NoGen
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+&L		MoveA.L	&P, A0
+		Trap	#trFreeMsg
+		Else
+		Import	FreeMsg
+&L		Move.L	&P, -(A7)
+		JSR		FreeMsg
+		AddA.W	#4, A7
+		Endif
+		Print	Pop
+		EndM
+
+
+**	GetMsg - Get message buffer.
+
+		Macro
+&L		GetMsg
+		GBLC	&Card
+		Print	Push, NoGen
+		If &Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+&L		TRAP	#trGetMsg
+		Else
+		Import	GetMsg
+&L		JSR		GetMsg
+		Endif
+		Print	Pop
+		EndM
+
+
+**	SIL - Set Interrupt Level - A/ROSE only.
+
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		SIL		&P
+		Print	Push, NoGen
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		Move.L	&P, A0
+		Trap	#trSpl
+		ElseIf	&SubStr(&Trim(&P), 1, 1)='#' Then
+		LclC	&SS
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		SubA.L	A0, A0
+		Else
+&L		LEA		&SS, A0
+		EndIf
+		Trap	#trSpl
+		Else
+&L		MoveA.L	&P, A0
+		Trap	#trSpl
+		EndIf
+		Print	Pop
+		EndM
+		
+		EndIf
+
+
+**	Send - Send message.
+
+		Macro
+&L		Send	&P
+		GBLC	&Card
+		Print	Push, NoGen
+		If &Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+&L		MoveA.L	&P, A0
+		Trap	#trSend
+		Else
+		Import	Send
+&L		Move.L	&P, -(A7)
+		JSR		Send
+		AddA.W	#4, A7
+		Endif
+		Print	Pop
+		EndM
+
+
+**	Receive - Receive a message.
+
+		If &Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+		Macro
+&L		Receive	&P1, &P2, &P3, &P4
+		Print	Push, NoGen
+&L		_OptPush	&P4
+		_OptPush	&P3
+		_OptPush	&P2
+		_OptPush	&P1
+		MoveA.L	A7, A0
+		Trap	#trReceive
+		AddA.W	#16, A7
+		Print	Pop
+		EndM
+		
+		Else
+		
+		Macro
+&L		Receive	&P1, &P2, &P3, &P4, &P5
+		Print	Push, NoGen
+		Import	Receive
+&L		PEA			&P5
+		_OptPush	&P4
+		_OptPush	&P3
+		_OptPush	&P2
+		_OptPush	&P1
+		JSR		Receive
+		AddA.W	#20, A7
+		Print	Pop
+		EndM
+		
+		Endif
+		
+
+
+**	StartTask - Start a Task - A/ROSE only.
+
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		StartTask	&P
+		Print	Push, NoGen
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		Move.L	&P, A0
+		Trap	#trStartTask
+		ElseIf	&SubStr(&Trim(&P), 1, 1)='#' Then
+		LclC	&SS
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		SubA.L	A0, A0
+		Else
+&L		LEA		&SS, A0
+		EndIf
+		Trap	#trStartTask
+		Else
+&L		MoveA.L	&P, A0
+		Trap	#trStartTask
+		EndIf
+		Print	Pop
+		EndM
+		
+		EndIf
+
+**	StopTask - Stop a Task - A/ROSE only.
+
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		StopTask	&P
+		Print	Push, NoGen
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		Move.L	&P, A0
+		Trap	#trStopTask
+		ElseIf	&SubStr(&Trim(&P), 1, 1)='#' Then
+		LclC	&SS
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		SubA.L	A0, A0
+		Else
+&L		LEA		&SS, A0
+		EndIf
+		Trap	#trStopTask
+		Else
+&L		MoveA.L	&P, A0
+		Trap	#trStopTask
+		EndIf
+		Print	Pop
+		EndM
+		
+		EndIf
+
+*
+*	Resched - Reschedule - A/ROSE only.
+*
+		If	&Card='MCP' or &Card='AST_ICP' or &Card='FP' or &Card='Binaries' Then
+
+		Macro
+&L		Resched	&P
+		Print	Push, NoGen
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		Move.L	&P, A0
+		Trap	#trResched
+		ElseIf	&SubStr(&Trim(&P), 1, 1)='#' Then
+		LclC	&SS
+&SS		SetC	&SubStr(&Trim(&P), 2, 9999)
+		If		&Eval(&SS)=0 Then
+&L		SubA.L	A0, A0
+		Else
+&L		LEA		&SS, A0
+		EndIf
+		Trap	#trResched
+		Else
+&L		MoveA.L	&P, A0
+		Trap	#trResched
+		EndIf
+		Print	Pop
+		EndM
+		
+		EndIf
+		
+		Space	4
+		Eject	20
+**	NuBus access/mapping macros.
+
+
+**	MapNuBus - Map NuBus address to local address and set page reg - A/ROSE only.
+
+		Macro	
+&L		MapNuBus	&Reg
+		Print	Push, NoGen
+		LclC	&DReg, &Str[4]
+		LclA	&I
+&DReg	SetC	'D0'
+&I		SetA	&List(&Type(&Reg), '&Str', ' ')
+&I		SetA	1
+.*
+		If		&Str[1]='REG' Then
+&I		SetA	Â(&Str[2]='D0')
+		EndIf
+		
+		Import	MapNuBus
+&L		
+		If		&I Then
+		Exg		&DReg, &Reg			; MapNuBus destroys only D0
+		EndIf
+		
+		Move.L	&DReg, -(A7)
+		JSR		MapNuBus
+		AddQ.W	#4, A7				; Adjust stack
+		
+		If		&I Then
+		Exg		&DReg, &Reg			; Return result to correct register
+		EndIf
+		Print	Pop
+		EndM
+
+**	ToNuBus - Convert local address to NuBus address.
+
+		Macro
+&L		ToNuBus	&P
+		Print	Push, NoGen
+		Import	ToNuBus
+		Move.L	&P, -(A7)
+		JSR		ToNuBus				; Only register D0 is destroyed
+		Add.W	#4, A7
+		Move.L	D0, &P
+		Print	Pop
+		EndM
+
+*	ResetPageLatch - Reset page latch - A/ROSE only.
+
+		Macro
+&L		ResetPageLatch	&P
+		Print	Push, NoGen
+		Import	ResetPageLatch
+&L		Move.W	&P, -(A7)
+		Move.W	#0, -(A7)
+		JSR		ResetPageLatch
+		Add.W	#4, A7
+		Print	Pop
+		EndM
+		
+*	ResetLatch - Reset page latch from gCommon.gPageLatch - A/ROSE only.
+*									This is around for historical reasons.
+
+		Macro
+&L		ResetLatch	
+		Print	Push, NoGen
+		Import	ResetPageLatch
+&L		Move.W	gCommon.gPageLatch, -(A7)
+		Move.W	#0, -(A7)
+		JSR		ResetPageLatch
+		Add.W	#4, A7
+		Print	Pop
+		EndM
+		
+**	OpenQueue - Open Apple IPC queue - Macintosh II only.
+
+		Macro
+&L		OpenQueue	&P
+		Print	Push, NoGen
+		Import	OpenQueue
+&L		PEA		&P
+		JSR		OpenQueue
+		AddA.W	#4, A7
+		Print	Pop
+		EndM
+		
+**		CloseQueue - Close Apple IPC queue - Macintosh II only.
+
+		Macro
+&L		CloseQueue
+		Print	Push, NoGen
+		Import	CloseQueue
+&L		JSR		CloseQueue
+		Print	Pop
+		EndM
+		
+**		KillReceive - Kill outstanding Apple IPC Receive request - Macintosh II only.
+
+		Macro
+&L		KillReceive
+		Print	Push, NoGen
+		Import	KillReceive
+&L		JSR		KillReceive
+		Print	Pop
+		EndM
+
+**		PushAIPC - Push Apple IPC driver.
+
+		Macro
+&L		PushAIPC
+		Print	Push, NoGen
+		Import	PushAIPC
+&L		JSR		PushAIPC
+		Print	Pop
+		EndM
+
+**		SwapTID - Swap the mFrom and mTo fields of a message buffer.
+
+		Macro
+&L		SwapTID	&P
+		Print	Push, NoGen
+		LclC	&AReg
+		If		&SubStr(&Type(&P), 1, 5)='REG A' Then
+&AReg	SetC	&P
+&L		Move.L	mMessage.mFrom(&AReg), -(A7)
+
+		Else
+		
+&AReg	SetC	'A0'
+
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+&L		EXG		&AReg, &P
+		Move.L	mMessage.mFrom(&AReg), -(A7)
+		Else
+&L		Move.L	&AReg, -(A7)
+		LEA		&P, &AReg
+		Move.L	mMessage.mFrom(&AReg), -(A7)
+		Endif
+		
+		Endif
+		
+		Move.L	mMessage.mTo(&AReg), mMessage.mFrom(&AReg)
+		Move.L	(A7)+, mMessage.mTo(&AReg)
+		If		Â(&SubStr(&Type(&P), 1, 5)='REG A') Then
+		
+		If		&SubStr(&Type(&P), 1, 4)='REG ' Then
+		EXG		&AReg, &P
+		Else
+		Move.L	(A7)+, &AReg
+		Endif
+		
+		Endif
+		Print	Pop
+		EndM
+
+**		SuperCall - Call a user routine in supervisor mode.
+		
+		MACRO
+&L		SuperCall	&Routine, &Argument
+&L		Move.L		&Argument, -(A7)
+		Move.L		&Routine, -(A7)
+		Move.L		#1, -(A7)			; Set up jump table request sub-code
+		Move.L		A7, A0
+		TRAP		#trSpecReqs
+		Add.W		#12, A7
+		ENDM
+
+		Endif
+
+*	End of os.a.

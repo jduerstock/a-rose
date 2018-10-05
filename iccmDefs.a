@@ -1,0 +1,109 @@
+**	iccmDefs.a	- Definitions for inter-card communication.
+*
+*	Mark D. Rustad.		03/11/87.
+*
+*	Copyright © 1987-88,  Apple Computer, Inc.  All rights reserved.
+		Space	4
+		Eject	20
+**	Symbol definitions.
+
+		If	&TYPE('_iccmDefs_defined_')='UNDEFINED'	Then
+_iccmDefs_defined_		EQU		1			; Define the Symbol
+
+		Include	'SlotEqu.a'
+		
+*ic_FVal	Equ		$1CCA1940		; Value of icca flag
+ic_FVal	Equ		$1CCA1943		; Value of icca flag
+
+ic_SlotMax	Equ	16				; Maximum number of slots
+
+ic_RtnSize	EQU	16				; Size of Interrupt code for causing interrupt in bytes
+
+ic_Rdy	Equ		8				; Full slot now ready
+
+ic_BadReplyArea	Equ	32<<8		; mStatus for bad GetCards request
+
+ic_TMOValue	Equ	3				; Timeout Delay in seconds before declaring card down
+		Space	4
+		Eject	10
+**	Structure definitions.
+
+
+*	Communication Area Pointer Record.
+
+cap_Rec	Record	0
+Flag	DS.L	1				; Holds icca magic number (ic_FVal)
+CaPtr	DS.L	1				; Holds pointer to icca
+CkSum	DS.L	1				; Holds cap_Rec checksum
+		EndR
+
+
+*	Communication Area Record.
+
+ca_Rec	Record	0
+Flag	DS.L	1				; 00 - Magic constant
+Format	DS.B	1				; 04 - Format number of this communications area
+gDebugOn DS.B	1				; 05 - Non-zero if debugger running
+IFlag	DS.B	1				; 06 - Input flag, set if one or more IFlags set
+IntFlg	DS.B	1				; 07 - < 0 if cannot handle interrupts
+								; 	   = 0 if can handle interrupts and host can handle interrupts
+								;      > 0 if can handle interrupts but host not ready for them yet
+IFlags	DS.B	ic_SlotMax		; 08 - Input flags (set by sender, cleared by receiver)
+Addrs	DS.L	ic_SlotMax		; 18 - Addresses of slot's comm. areas
+Ptrs	DS.L	ic_SlotMax		; 58 - Pointers to receive buffers
+QSCount	DS.L	1				; 98 - Quick scan count
+IntPtr	DS.L	1				; 9C - Pointer to interrupt routines
+NameMgr	DS.L	1				; A0 - TID of name manager on this card
+IMMTID	DS.L	1				; A4 - IMM Handler TID
+MapCnt	DS.L	1				; A8 - Address Map counter - incremented each time address map is changed
+								; 		Must be non-zero if address map is in use; zero otherwise
+MapPtr	DS.L	1				; AC - Pointer to address map to be used for 
+								; 		virtual to real address conversions or zero
+MapChk	DS.L	1				; B0 - Contains the same value as MapCnt when the address map is NOT
+								;		being manipulated
+								; 		Things walking the address map must check MapChk after fetching
+								; 		each link and after obtaining entry information to determine
+								; 		if the link/information is still valid (MapChk unchanged)
+AccCnt	DS.L	1				; B4 - Access Map counter - incremented each time access map is changed
+								; 		Must be non-zero if access map is in use; zero otherwise
+AccPtr	DS.L	1				; B8 - Pointer to security access map or zero
+AccChk	DS.L	1				; BC - Contains the same value as AccCnt when the access map is NOT
+								;		being manipulated
+								; 		Things walking the access map must check AccChk after fetching
+								; 		each link and after obtaining entry information to determine
+								; 		if the link/information is still valid (AccChk unchanged)
+Filler	DS.L	16				; C0 - Reserved - Must be zero
+Size	EQU		*				; 100 - Size of area
+		EndR
+
+		Space	4
+
+**	Interrupt routine record.
+
+IR_REC	Record	0
+Shift	EQU		6				; Table entry is this amount of space
+RtnShft	EQU		4				; Power of 2 Size of Interrupt routines
+RtnSize	EQU		1<<IR_REC.RtnShft; Interrupt routines are each 16 bytes large
+SlotBias	EQU	8				; Our Interrupt tables are biased by 8, only space for slots 8-$f
+
+SIntPtr	DS.L	1				; Set Interrupt routine pointer
+SIntRtn	DS.B	IR_REC.RtnSize	; Set Interrupt routine code
+Cpy1Size	EQU	*				; Size of record to copy for only set interrupt code
+CIntPtr	DS.L	1				; Clear Interrupt routine pointer
+CIntRtn	DS.B	IR_REC.RtnSize	; Clear Interrupt routine code
+
+Cpy2Size	EQU	*				; Size of record to copy for both set and clear interrupt code
+
+SQElmnt	DS.B	SlotIntQElement.sqHDSize
+
+Size	EQU		(1<<IR_REC.Shift)	; Size of this structure
+		If		IR_REC.Size < * Then
+		Aerror	The Symbol IR_REC.Shift must be increased
+		Endif
+		
+		EndR
+
+		Endif
+
+*	End of iccmDefs.a.
+

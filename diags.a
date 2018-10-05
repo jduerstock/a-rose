@@ -1,0 +1,39 @@
+***						diags.a - - Diagnostic constants.						
+*																				
+*			Richard C. Sewill.								11/23/87.			
+*																				
+*		Copyright © 1987-88, Apple Computer, Inc. 		All rights reserved.		
+*																				
+*
+							Space	4
+**							Request codes 
+
+					If	&TYPE('_diags_defined_')='UNDEFINED'	Then
+_diags_defined_		EQU		1			; Define the Symbol
+
+finish				EQU		500			; stop the task						
+getmem				EQU		502			; get memory on card				
+freemem				EQU		504			; release memory on card						
+test_and_set		EQU		506			; Perform test and set test						
+RAM_test			EQU		508			; Perform RAM test					
+ROM_test			EQU		510			; Perform ROM test					
+test_set_interrupt	EQU		512			; Perform test, set, and interrupt	
+init_test_set_bfr	EQU		514			; Initialize test and set buffer
+
+**							Error Constants 
+
+DIE_NOERR			EQU		0		;	No error
+DIE_ABORT			EQU		1		;	Request aborted
+DIE_BADREQ			EQU		2		;	Bad request						
+DIE_RAMFAIL			EQU		3		;	RAM test failed					
+DIE_ROMFAIL			EQU		4		;	ROM test failed	
+DIE_TASFAIL			EQU		5		;	Test and Set buffer check failed
+DIE_BUFSMALL		EQU		6		;	Test and Set buffer too small
+DIE_BUFALIGN		EQU		7		;	Test and Set buffer not word aligned
+DIE_BUFADDR			EQU		8		;	Test and Set buffer not local on initialization request
+
+					EndIf
+
+**	End of diags.a 
+
+
